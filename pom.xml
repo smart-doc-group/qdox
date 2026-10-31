@@ -509,7 +509,7 @@
             <version>0.12.0</version>
             <extensions>true</extensions>
             <configuration>
-              <publishingServerId>central-ly</publishingServerId>
+              <publishingServerId>central-shalousun</publishingServerId>
               <autoPublish>false</autoPublish>
             </configuration>
           </plugin>
