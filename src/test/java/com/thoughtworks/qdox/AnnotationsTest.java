@@ -285,4 +285,14 @@ public class AnnotationsTest {
         builder.addSource( new StringReader( source ) );
     }
 
+    @Test
+    public void i219() {
+        JavaProjectBuilder builder = new JavaProjectBuilder();
+        String source =
+            "package org.example;\n"
+                + "public class Test {\n"
+                + "  public byte @Nullable [] bytes;\n"
+                + "}";
+        builder.addSource( new StringReader( source ) );
+    }
 }

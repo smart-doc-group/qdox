@@ -1,14 +1,14 @@
 package com.thoughtworks.qdox;
 
-
-
-
 import org.junit.jupiter.api.Test;
 
 import java.io.StringReader;
 
+/**
+ *
+ * @author shalousun
+ */
 public class PermitsTest {
-
     @Test
     public void permitsAsTypeAndIdentifiers() {
         String source = "public class MyPermits {\n" +

@@ -319,7 +319,13 @@ public class JavaProjectBuilderTest {
         JavaClass list = builder.getClassByName("java.util.List");
         Assertions.assertTrue(list.isInterface());
         Assertions.assertNull(list.getSuperJavaClass());
-        Assertions.assertEquals("java.util.Collection", list.getImplements().get(0).getValue());
+        String firstInterface = list.getImplements().get(0).getValue();
+        int majorVersion = Integer.parseInt(System.getProperty("java.version").split("\\.")[0]);
+        if (majorVersion >= 21) {
+            Assertions.assertEquals("java.util.SequencedCollection", firstInterface);
+        } else {
+            Assertions.assertEquals("java.util.Collection", firstInterface);
+        }
     }
 
     @Test
@@ -2106,5 +2112,26 @@ public class JavaProjectBuilderTest {
         builder.addSourceFolder( file );
         
         verify( classLibraryBuilder ).addSourceFolder( same( file ) );
+    }
+
+    @Test
+    public void testEmptyAndCommentOnlyFiles() {
+        // should not throw an exception
+        builder.addSource(new StringReader(""));
+        builder.addSource(new StringReader("// just a comment"));
+        builder.addSource(new StringReader("/* a multiline comment */"));
+    }
+
+    @Test
+    public void testBlankClass() {
+        String source = "package com.foo; public class Bar {}";
+        builder.addSource(new StringReader(source));
+        Assertions.assertNotNull(builder.getClassByName("com.foo.Bar"));
+    }
+
+    @Test
+    public void testCommentedOutClass() throws IOException {
+        builder.addSource(new File("src/test/resources/com/thoughtworks/qdox/testdata/CommentedClass.java"));
+        Assertions.assertTrue(builder.getClasses().isEmpty());
     }
 }

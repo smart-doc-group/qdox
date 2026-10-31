@@ -64,7 +64,7 @@ import java.util.Stack;
 %type <annoval> PostfixExpression PostIncrementExpression PostDecrementExpression CastExpression Assignment LeftHandSide AssignmentExpression
 %type <ival> Dims Dims_opt
 %type <sval> QualifiedIdentifier TypeDeclSpecifier MethodBody AssignmentOperator ModuleName
-%type <type> Type ReferenceType Wildcard WildcardBounds VariableDeclaratorId ClassOrInterfaceType TypeArgument
+%type <type> Type ReferenceType Wildcard WildcardBounds VariableDeclaratorId ClassOrInterfaceType TypeArgument AnnotatedTypeArgument
 
 %%
 // Source: Java Language Specification - Third Edition
@@ -107,7 +107,7 @@ import java.util.Stack;
 // CompilationUnit:
 //     [PackageDeclaration] {ImportDeclaration} {TypeDeclaration}
 //     {ImportDeclaration} ModuleDeclaration  
-CompilationUnit: CompilationDeclaration
+CompilationUnit:
                | CompilationUnit CompilationDeclaration
                ;
 
@@ -1707,10 +1707,19 @@ Dims: SQUAREOPEN SQUARECLOSE
       { 
         $$ = 1;
       } 
+    | Annotation SQUAREOPEN SQUARECLOSE 
+      { 
+        $$ = 1;
+      } 
     | Dims SQUAREOPEN SQUARECLOSE 
       { 
         $$ = $1 + 1;
       };
+    | Annotation Dims SQUAREOPEN SQUARECLOSE 
+      { 
+        $$ = $2 + 1;
+      };
+
 Dims_opt: { 
             $$ = 0; 
           }
@@ -1719,9 +1728,9 @@ Dims_opt: {
 
 // TypeParameter:
 //     {TypeParameterModifier} Identifier [TypeBound]
-TypeParameter: IDENTIFIER 
+TypeParameter: Annotations_opt IDENTIFIER 
                { 
-                 typeVariable = new TypeVariableDef($1);
+                 typeVariable = new TypeVariableDef($2);
                  typeVariable.setBounds(new LinkedList<TypeDef>());
                }
                TypeBound_opt
@@ -1780,19 +1789,35 @@ TypeArgumentList: TypeArgument
                 ;
 
 // TypeArgument:
-//     ReferenceType 
+//     ReferenceType
 //     Wildcard
-TypeArgument: ReferenceType
+TypeArgument: Annotation QUERY WildcardBounds
+              {
+                $$ = $3;
+              }
+            | Annotation QUERY
+              {
+                $$ = new WildcardTypeDef();
+              }
+            | ReferenceType
             | Wildcard
+            | AnnotatedTypeArgument
             ;
+
+// AnnotatedTypeArgument - handles @Annotation Type constructs in type arguments
+AnnotatedTypeArgument: Annotation ClassOrInterfaceType
+                      {
+                        $$ = $2;
+                      }
+                    ;
 
 // Wildcard:
 //     {Annotation} ? [WildcardBounds]
-Wildcard: QUERY WildcardBounds
+Wildcard: Annotations_opt QUERY WildcardBounds
           {
-            $$ = $2;
+            $$ = $3;
           }
-        | QUERY
+        | Annotations_opt QUERY
           {
             $$ = new WildcardTypeDef();
           }
@@ -2000,7 +2025,6 @@ Modifier: Annotation
           {
             modifiers.add("default");
           }
-        | 
         ;
          
 Arguments_opt:

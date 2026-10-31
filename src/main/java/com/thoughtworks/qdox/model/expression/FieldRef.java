@@ -166,7 +166,12 @@ public class FieldRef
 
         for ( int i = start; i < end; ++i )
         {
-            field = javaClass.getFieldByName( getNamePart( i ), true, true );
+            field = javaClass.getFieldByName( getNamePart( i ) );
+            if ( field == null )
+            {
+                // inherited fields, including non-public ones referenced from the same package or class
+                field = javaClass.getFieldByName( getNamePart( i ), false, true );
+            }
 
             if ( field != null )
             {
